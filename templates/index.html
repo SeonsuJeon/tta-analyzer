@@ -4,217 +4,93 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TTA 사업계획서 분석 도구</title>
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "맑은 고딕", "Malgun Gothic", sans-serif; background: #f0f4f8; color: #222; min-height: 100vh; }
 
-  body {
-    font-family: "맑은 고딕", "Malgun Gothic", sans-serif;
-    background: #f0f4f8;
-    color: #222;
-    min-height: 100vh;
-  }
+  header { background: #1a3a5c; color: #fff; text-align: center; padding: 18px 24px; font-size: 20px; font-weight: bold; }
 
-  header {
-    background: #1a3a5c;
-    color: #fff;
-    text-align: center;
-    padding: 18px 24px;
-    font-size: 20px;
-    font-weight: bold;
-  }
-
-  /* ── API 키 바 ── */
-  .api-bar {
-    background: #2d2d2d;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    flex-wrap: wrap;
-  }
+  .api-bar { background: #2d2d2d; display: flex; align-items: center; gap: 10px; padding: 10px 20px; flex-wrap: wrap; }
   .api-bar label { color: #aaa; font-size: 13px; font-weight: bold; white-space: nowrap; }
-  .api-bar input {
-    flex: 1; min-width: 260px; max-width: 520px;
-    background: #3d3d3d; border: none; border-radius: 4px;
-    color: #e0e0e0; font-family: Consolas, monospace; font-size: 13px;
-    padding: 7px 10px; outline: none;
-  }
-  .api-bar button {
-    background: #555; border: none; border-radius: 4px;
-    color: #fff; cursor: pointer; font-size: 12px; padding: 7px 14px;
-  }
+  .api-bar input { flex: 1; min-width: 260px; max-width: 520px; background: #3d3d3d; border: none; border-radius: 4px; color: #e0e0e0; font-family: Consolas, monospace; font-size: 13px; padding: 7px 10px; outline: none; }
+  .api-bar button { background: #555; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 12px; padding: 7px 14px; }
   .api-bar button:hover { background: #777; }
   #key-status { font-size: 12px; }
-  #key-status.ok   { color: #2ecc71; }
-  #key-status.warn { color: #f39c12; }
-  #key-status.none { color: #e74c3c; }
+  #key-status.ok { color: #2ecc71; } #key-status.warn { color: #f39c12; } #key-status.none { color: #e74c3c; }
 
-  /* ── 메인 ── */
   main { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
 
-  .section {
-    background: #fff; border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,.1);
-    margin-bottom: 16px; overflow: hidden;
-  }
-  .section-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 16px; font-weight: bold; font-size: 14px; color: #fff;
-  }
-  .section-header.green { background: #2c6e49; }
-  .section-header.blue  { background: #1d4e89; }
+  .section { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 16px; overflow: hidden; }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-weight: bold; font-size: 14px; color: #fff; }
+  .section-header.green { background: #2c6e49; } .section-header.blue { background: #1d4e89; }
   .section-body { padding: 14px 16px; }
 
-  /* ── 드롭존 ── */
-  .drop-zone {
-    border: 2px dashed #ccc; border-radius: 6px; padding: 20px;
-    text-align: center; color: #888; font-size: 13px;
-    cursor: pointer; transition: border-color .2s, background .2s;
-    position: relative;
-  }
+  .drop-zone { border: 2px dashed #ccc; border-radius: 6px; padding: 20px; text-align: center; color: #888; font-size: 13px; cursor: pointer; transition: border-color .2s, background .2s; position: relative; }
   .drop-zone:hover, .drop-zone.over { border-color: #4a90d9; background: #f0f7ff; }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
+  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .drop-zone .drop-icon { font-size: 28px; margin-bottom: 6px; }
 
-  /* ── 파일 목록 ── */
   .file-list { margin-top: 10px; }
-  .file-item {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #f8f8f8; border-radius: 4px; font-size: 12px;
-    margin-bottom: 4px; padding: 6px 10px;
-  }
+  .file-item { display: flex; align-items: center; justify-content: space-between; background: #f8f8f8; border-radius: 4px; font-size: 12px; margin-bottom: 4px; padding: 6px 10px; }
   .file-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .file-item button {
-    background: none; border: none; color: #c0392b;
-    cursor: pointer; font-size: 14px; flex-shrink: 0; margin-left: 8px;
-  }
+  .file-item .file-status { font-size: 11px; color: #888; flex-shrink: 0; margin-left: 8px; }
+  .file-item .file-status.done { color: #2ecc71; } .file-item .file-status.uploading { color: #f39c12; } .file-item .file-status.error { color: #e74c3c; }
+  .file-item button { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 14px; flex-shrink: 0; margin-left: 6px; }
 
-  /* ── 버튼 ── */
   .ctrl-row { display: flex; align-items: center; gap: 12px; margin: 6px 0 16px; flex-wrap: wrap; }
-  .btn-analyze {
-    background: #c0392b; border: none; border-radius: 6px;
-    color: #fff; cursor: pointer; font-size: 15px; font-weight: bold;
-    padding: 11px 32px; transition: background .2s;
-  }
+  .btn-analyze { background: #c0392b; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 15px; font-weight: bold; padding: 11px 32px; transition: background .2s; }
   .btn-analyze:hover:not(:disabled) { background: #96281b; }
   .btn-analyze:disabled { background: #aaa; cursor: not-allowed; }
-  .btn-clear {
-    background: #7f8c8d; border: none; border-radius: 6px;
-    color: #fff; cursor: pointer; font-size: 13px; padding: 11px 20px;
-  }
+  .btn-clear { background: #7f8c8d; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px; padding: 11px 20px; }
   .btn-clear:hover { background: #636e72; }
   #status-msg { font-size: 13px; color: #555; }
 
-  /* ── 오류 ── */
-  .error-box {
-    background: #fdecea; border-left: 4px solid #c0392b; border-radius: 4px;
-    color: #c0392b; display: none; font-size: 13px; margin-bottom: 14px; padding: 12px 16px;
-  }
+  .error-box { background: #fdecea; border-left: 4px solid #c0392b; border-radius: 4px; color: #c0392b; display: none; font-size: 13px; margin-bottom: 14px; padding: 12px 16px; }
 
-  /* ── 결과 ── */
+  /* 이력 */
+  .history-toggle { background: none; border: 1px solid #7f8c8d; border-radius: 4px; color: #555; cursor: pointer; font-size: 12px; padding: 5px 12px; margin-bottom: 10px; }
+  #history-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); display: none; margin-bottom: 16px; overflow: hidden; }
+  .history-header { background: #34495e; color: #fff; font-size: 13px; font-weight: bold; padding: 10px 16px; }
+  .history-item { border-bottom: 1px solid #eee; cursor: pointer; display: flex; flex-direction: column; gap: 3px; padding: 10px 16px; transition: background .15s; }
+  .history-item:hover { background: #f5f7fa; } .history-item:last-child { border-bottom: none; }
+  .history-date { color: #888; font-size: 11px; } .history-files { color: #333; font-size: 12px; } .history-count { color: #1d4e89; font-size: 11px; font-weight: bold; }
+
+  /* 결과 */
   #result-section { display: none; }
-  .result-summary {
-    background: #eaf4ee; border-left: 4px solid #2c6e49;
-    border-radius: 4px; font-size: 13px; margin-bottom: 16px; padding: 10px 14px;
-  }
-
-  .task-card {
-    background: #fff; border: 1px solid #dde; border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 14px; overflow: hidden;
-  }
-  .task-card-header {
-    background: #1a3a5c; color: #fff;
-    display: flex; align-items: baseline; gap: 12px; padding: 10px 16px;
-  }
-  .task-no { font-size: 12px; opacity: .75; }
-  .task-name { font-weight: bold; font-size: 14px; }
-  .task-id-badge {
-    background: rgba(255,255,255,.2); border-radius: 4px;
-    font-size: 11px; padding: 2px 7px; margin-left: auto; white-space: nowrap;
-  }
+  .result-summary { background: #eaf4ee; border-left: 4px solid #2c6e49; border-radius: 4px; font-size: 13px; margin-bottom: 16px; padding: 10px 14px; }
+  .task-card { background: #fff; border: 1px solid #dde; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 14px; overflow: hidden; }
+  .task-card-header { background: #1a3a5c; color: #fff; display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; }
+  .task-no { font-size: 12px; opacity: .75; } .task-name { font-weight: bold; font-size: 14px; }
+  .task-id-badge { background: rgba(255,255,255,.2); border-radius: 4px; font-size: 11px; padding: 2px 7px; margin-left: auto; white-space: nowrap; }
   .task-body { padding: 14px 16px; }
-  .field-label {
-    color: #1a3a5c; font-size: 12px; font-weight: bold;
-    margin: 10px 0 4px; letter-spacing: .5px;
-  }
+  .field-label { color: #1a3a5c; font-size: 12px; font-weight: bold; margin: 10px 0 4px; letter-spacing: .5px; }
   .field-label:first-child { margin-top: 0; }
   .field-value { color: #333; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
-  .basis-box {
-    background: #fffbe6; border-left: 3px solid #f39c12; border-radius: 3px;
-    font-size: 12.5px; line-height: 1.65; margin-top: 4px;
-    padding: 8px 12px; white-space: pre-wrap;
-  }
-
-  .cap-toggle {
-    background: none; border: 1px solid #1a3a5c; border-radius: 4px;
-    color: #1a3a5c; cursor: pointer; font-size: 12px; margin-bottom: 10px; padding: 5px 12px;
-  }
-  #cap-body {
-    background: #f4f8ff; border-radius: 6px; display: none; font-size: 13px;
-    line-height: 1.75; margin-bottom: 14px; padding: 14px 16px; white-space: pre-wrap;
-  }
-
-  .btn-save {
-    background: #34495e; border: none; border-radius: 6px;
-    color: #fff; cursor: pointer; font-size: 13px; padding: 9px 20px; margin-top: 4px;
-  }
+  .basis-box { background: #fffbe6; border-left: 3px solid #f39c12; border-radius: 3px; font-size: 12.5px; line-height: 1.65; margin-top: 4px; padding: 8px 12px; white-space: pre-wrap; }
+  .cap-toggle { background: none; border: 1px solid #1a3a5c; border-radius: 4px; color: #1a3a5c; cursor: pointer; font-size: 12px; margin-bottom: 10px; padding: 5px 12px; }
+  #cap-body { background: #f4f8ff; border-radius: 6px; display: none; font-size: 13px; line-height: 1.75; margin-bottom: 14px; padding: 14px 16px; white-space: pre-wrap; }
+  .btn-save { background: #34495e; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px; padding: 9px 20px; margin-top: 4px; }
   .btn-save:hover { background: #2c3e50; }
 
-  /* ── 이력 패널 ── */
-  .history-toggle {
-    background: none; border: 1px solid #7f8c8d; border-radius: 4px;
-    color: #555; cursor: pointer; font-size: 12px; padding: 5px 12px; margin-bottom: 10px;
-  }
-  #history-panel {
-    background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
-    display: none; margin-bottom: 16px; overflow: hidden;
-  }
-  .history-header {
-    background: #34495e; color: #fff; font-size: 13px;
-    font-weight: bold; padding: 10px 16px;
-  }
-  .history-item {
-    border-bottom: 1px solid #eee; cursor: pointer;
-    display: flex; flex-direction: column; gap: 3px;
-    padding: 10px 16px; transition: background .15s;
-  }
-  .history-item:hover { background: #f5f7fa; }
-  .history-item:last-child { border-bottom: none; }
-  .history-date { color: #888; font-size: 11px; }
-  .history-files { color: #333; font-size: 12px; }
-  .history-count { color: #1d4e89; font-size: 11px; font-weight: bold; }
-
-  /* ── 스피너 오버레이 ── */
-  #overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.45); z-index: 999;
-    flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-  }
+  /* 오버레이 */
+  #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 999; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
   #overlay.show { display: flex; }
-  .spinner-lg {
-    width: 56px; height: 56px;
-    border: 6px solid rgba(255,255,255,.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-  }
-  #overlay p { color: #fff; font-size: 15px; font-weight: bold; }
+  .spinner-lg { width: 56px; height: 56px; border: 6px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+  #overlay-msg { color: #fff; font-size: 15px; font-weight: bold; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<!-- 분석 중 오버레이 -->
 <div id="overlay">
   <div class="spinner-lg"></div>
-  <p>GPT-4o 분석 중입니다... 잠시만 기다려 주세요.</p>
+  <p id="overlay-msg">업로드 중...</p>
 </div>
 
 <header>TTA 사업계획서 분석 도구</header>
 
-<!-- API 키 -->
 <div class="api-bar">
   <label for="api-key-input">OpenAI API Key</label>
   <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off">
@@ -223,47 +99,38 @@
 </div>
 
 <main>
-
-  <!-- 이력 패널 -->
   <button class="history-toggle" onclick="toggleHistory()">🕘 분석 이력 보기</button>
   <div id="history-panel">
     <div class="history-header">최근 분석 이력 (Supabase)</div>
     <div id="history-list"><div style="padding:12px 16px;font-size:13px;color:#888">불러오는 중...</div></div>
   </div>
 
-  <!-- 기존 사업계획서 -->
   <div class="section">
     <div class="section-header green">① 기존 사업계획서</div>
     <div class="section-body">
-      <div class="drop-zone" id="dz-existing"
-           ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-existing')"
-           ondrop="onDrop(event,'existing')">
+      <div class="drop-zone" id="dz-existing" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-existing')" ondrop="onDrop(event,'existing')">
         <input type="file" accept=".pdf" multiple onchange="onFileChange(event,'existing')" id="fi-existing">
         <div class="drop-icon">📄</div>
         <div>PDF 파일을 드래그하거나 클릭하여 선택</div>
-        <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능</div>
+        <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능 · Supabase Storage 직접 업로드</div>
       </div>
       <div class="file-list" id="list-existing"></div>
     </div>
   </div>
 
-  <!-- 품목개요서 -->
   <div class="section">
     <div class="section-header blue">② 품목개요서 (상세RFP)</div>
     <div class="section-body">
-      <div class="drop-zone" id="dz-rfp"
-           ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-rfp')"
-           ondrop="onDrop(event,'rfp')">
+      <div class="drop-zone" id="dz-rfp" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-rfp')" ondrop="onDrop(event,'rfp')">
         <input type="file" accept=".pdf" multiple onchange="onFileChange(event,'rfp')" id="fi-rfp">
         <div class="drop-icon">📋</div>
         <div>PDF 파일을 드래그하거나 클릭하여 선택</div>
-        <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능</div>
+        <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능 · Supabase Storage 직접 업로드</div>
       </div>
       <div class="file-list" id="list-rfp"></div>
     </div>
   </div>
 
-  <!-- 컨트롤 -->
   <div class="ctrl-row">
     <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()">분석 시작</button>
     <button class="btn-clear" onclick="clearResult()">결과 지우기</button>
@@ -272,7 +139,6 @@
 
   <div class="error-box" id="error-box"></div>
 
-  <!-- 결과 -->
   <div id="result-section">
     <div class="result-summary" id="result-summary"></div>
     <button class="cap-toggle" onclick="toggleCap()">▶ TTA 역량 분석 요약 보기</button>
@@ -280,38 +146,49 @@
     <div id="task-cards"></div>
     <button class="btn-save" onclick="saveResult()">결과 저장 (.txt)</button>
   </div>
-
 </main>
 
 <script>
+// ── Supabase 초기화 ─────────────────────────────────────────────────────────
+const SUPABASE_URL  = "{{ supabase_url }}";
+const SUPABASE_ANON = "{{ supabase_anon_key }}";
+const sb = (SUPABASE_URL && SUPABASE_ANON)
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+  : null;
+
 // ── 파일 관리 ──────────────────────────────────────────────────────────────
-const fileStore = { existing: new DataTransfer(), rfp: new DataTransfer() };
+// { name, file, status: 'pending'|'uploading'|'done'|'error', url, path }
+const fileStore = { existing: [], rfp: [] };
 
 function renderList(type) {
   const ul = document.getElementById(`list-${type}`);
   ul.innerHTML = "";
-  const files = fileStore[type].files;
-  for (let i = 0; i < files.length; i++) {
+  fileStore[type].forEach((item, i) => {
     const d = document.createElement("div");
     d.className = "file-item";
-    d.innerHTML = `<span>📄 ${files[i].name}</span><button onclick="removeFile('${type}',${i})">✕</button>`;
+    const statusMap = { pending:"대기", uploading:"업로드 중...", done:"✔ 완료", error:"✗ 오류" };
+    const statusClass = item.status;
+    d.innerHTML = `
+      <span>📄 ${escHtml(item.name)}</span>
+      <span class="file-status ${statusClass}">${statusMap[item.status]}</span>
+      <button onclick="removeFile('${type}',${i})">✕</button>`;
     ul.appendChild(d);
-  }
+  });
 }
 
 function addFiles(type, fileList) {
-  const existing = new Set([...fileStore[type].files].map(f => f.name));
+  const existing = new Set(fileStore[type].map(f => f.name));
   for (const f of fileList) {
-    if (!existing.has(f.name)) { fileStore[type].items.add(f); existing.add(f.name); }
+    if (!existing.has(f.name)) {
+      fileStore[type].push({ name: f.name, file: f, status: "pending", url: null, path: null });
+      existing.add(f.name);
+    }
   }
   renderList(type);
 }
 
 function removeFile(type, idx) {
-  const dt = new DataTransfer();
-  const files = fileStore[type].files;
-  for (let i = 0; i < files.length; i++) { if (i !== idx) dt.items.add(files[i]); }
-  fileStore[type] = dt;
+  fileStore[type].splice(idx, 1);
   renderList(type);
 }
 
@@ -327,58 +204,94 @@ function onDrop(e, type) {
 // ── API 키 ─────────────────────────────────────────────────────────────────
 const keyInput = document.getElementById("api-key-input");
 const keyStatus = document.getElementById("key-status");
-
 function toggleKey(e) {
-  const isHidden = keyInput.type === "password";
-  keyInput.type = isHidden ? "text" : "password";
-  e.target.textContent = isHidden ? "숨기기" : "표시";
+  const h = keyInput.type === "password";
+  keyInput.type = h ? "text" : "password";
+  e.target.textContent = h ? "숨기기" : "표시";
 }
-
 keyInput.addEventListener("input", () => {
   const k = keyInput.value.trim();
-  if (k.startsWith("sk-") && k.length > 20) {
-    keyStatus.textContent = "✔ 키 입력됨"; keyStatus.className = "ok";
-  } else if (k) {
-    keyStatus.textContent = "⚠ 형식 확인 필요"; keyStatus.className = "warn";
-  } else {
-    keyStatus.textContent = "키 미입력"; keyStatus.className = "none";
-  }
+  if (k.startsWith("sk-") && k.length > 20) { keyStatus.textContent = "✔ 키 입력됨"; keyStatus.className = "ok"; }
+  else if (k) { keyStatus.textContent = "⚠ 형식 확인 필요"; keyStatus.className = "warn"; }
+  else { keyStatus.textContent = "키 미입력"; keyStatus.className = "none"; }
 });
+
+// ── Supabase Storage 업로드 ────────────────────────────────────────────────
+async function uploadToStorage(type) {
+  const items = fileStore[type];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.status === "done") continue;
+    item.status = "uploading";
+    renderList(type);
+    try {
+      const path = `${type}/${Date.now()}_${item.name}`;
+      const { data, error } = await sb.storage.from("pdfs").upload(path, item.file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = sb.storage.from("pdfs").getPublicUrl(path);
+      item.url = urlData.publicUrl;
+      item.path = path;
+      item.status = "done";
+    } catch (e) {
+      item.status = "error";
+      item.error = e.message;
+    }
+    renderList(type);
+  }
+}
 
 // ── 분석 ───────────────────────────────────────────────────────────────────
 let resultData = null;
 
 async function startAnalysis() {
   const apiKey = keyInput.value.trim();
-  if (!apiKey)                           return alert("OpenAI API Key를 입력하세요.");
-  if (!fileStore.existing.files.length)  return alert("기존 사업계획서 PDF를 업로드하세요.");
-  if (!fileStore.rfp.files.length)       return alert("품목개요서(상세RFP) PDF를 업로드하세요.");
+  if (!apiKey) return alert("OpenAI API Key를 입력하세요.");
+  if (!fileStore.existing.length) return alert("기존 사업계획서 PDF를 업로드하세요.");
+  if (!fileStore.rfp.length) return alert("품목개요서(상세RFP) PDF를 업로드하세요.");
+  if (!sb) return showError("Supabase가 설정되지 않았습니다. 환경변수를 확인해 주세요.");
 
   clearResult();
   document.getElementById("btn-analyze").disabled = true;
-  document.getElementById("overlay").classList.add("show");
-  document.getElementById("status-msg").textContent = "분석 중...";
 
-  const fd = new FormData();
-  fd.append("api_key", apiKey);
-  for (const f of fileStore.existing.files) fd.append("existing_files", f);
-  for (const f of fileStore.rfp.files)      fd.append("rfp_files", f);
+  // ── 1단계: Storage 업로드 ──
+  setOverlay(true, "Supabase Storage에 PDF 업로드 중...");
+  await uploadToStorage("existing");
+  await uploadToStorage("rfp");
+
+  const failedExisting = fileStore.existing.filter(f => f.status !== "done");
+  const failedRfp = fileStore.rfp.filter(f => f.status !== "done");
+  if (failedExisting.length || failedRfp.length) {
+    setOverlay(false);
+    document.getElementById("btn-analyze").disabled = false;
+    showError("일부 파일 업로드에 실패했습니다. 파일을 확인하거나 다시 시도해 주세요.");
+    return;
+  }
+
+  // ── 2단계: 분석 요청 ──
+  setOverlay(true, "GPT-4o 분석 중... 잠시만 기다려 주세요.");
+  setStatus("분석 중...");
+
+  const payload = {
+    api_key: apiKey,
+    existing_urls: fileStore.existing.map(f => ({ name: f.name, url: f.url, path: f.path })),
+    rfp_urls:      fileStore.rfp.map(f => ({ name: f.name, url: f.url, path: f.path })),
+  };
 
   try {
-    const res = await fetch("/analyze", { method: "POST", body: fd });
+    const res = await fetch("/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-    // 응답이 JSON인지 먼저 확인
     const contentType = res.headers.get("content-type") || "";
     let data;
     if (contentType.includes("application/json")) {
       data = await res.json();
     } else {
-      // JSON이 아닌 경우 (Vercel 413·504 등 HTML/텍스트 오류)
       const text = await res.text();
-      if (res.status === 413) {
-        showError("파일 크기가 너무 큽니다 (Vercel 무료 플랜 제한 4.5MB). PDF 파일 수를 줄이거나 파일 크기를 줄여 주세요.");
-      } else if (res.status === 504 || res.status === 502) {
-        showError("분석 시간이 초과되었습니다 (Vercel 무료 플랜 제한 10초). PDF 파일 수를 줄이거나 Render 배포로 전환해 주세요.");
+      if (res.status === 504 || res.status === 502) {
+        showError("분석 시간이 초과되었습니다 (Vercel 10초 제한). PDF 수를 줄이거나 Render 배포로 전환해 주세요.");
       } else {
         showError(`서버 오류 (HTTP ${res.status}): ${text.slice(0, 200)}`);
       }
@@ -390,53 +303,42 @@ async function startAnalysis() {
     } else {
       resultData = data;
       renderResult(data);
-      document.getElementById("status-msg").textContent = "✔ 분석 완료!";
+      setStatus(data.saved_id ? `✔ 분석 완료! (DB 저장 ID: ${data.saved_id})` : "✔ 분석 완료!");
     }
   } catch (e) {
-    // 네트워크 오류 또는 JSON 파싱 실패
-    if (e instanceof SyntaxError) {
-      showError("서버 응답을 처리할 수 없습니다. Vercel 타임아웃(10초) 또는 파일 크기 초과(4.5MB)가 원인일 수 있습니다.");
-    } else {
-      showError("네트워크 오류: " + e.message);
-    }
+    showError("네트워크 오류: " + e.message);
   } finally {
-    document.getElementById("overlay").classList.remove("show");
+    setOverlay(false);
     document.getElementById("btn-analyze").disabled = false;
   }
 }
 
 // ── 결과 렌더링 ─────────────────────────────────────────────────────────────
 function renderResult(data) {
-  const section = document.getElementById("result-section");
-  section.style.display = "block";
-
+  document.getElementById("result-section").style.display = "block";
   const tasks = data.tasks || [];
-  document.getElementById("result-summary").textContent =
-    `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.`;
+  document.getElementById("result-summary").textContent = `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.`;
   document.getElementById("cap-body").textContent = data.capability_summary || "";
-
   const container = document.getElementById("task-cards");
   container.innerHTML = "";
-
   if (!tasks.length && data.raw) {
     container.innerHTML = `<pre style="font-size:12px;white-space:pre-wrap">${escHtml(data.raw)}</pre>`;
     return;
   }
-
   tasks.forEach((t, i) => {
     const card = document.createElement("div");
     card.className = "task-card";
     card.innerHTML = `
       <div class="task-card-header">
-        <span class="task-no">과제 ${i + 1}</span>
-        <span class="task-name">${escHtml(t["과제명"] || "")}</span>
-        <span class="task-id-badge">${escHtml(t["관리번호"] || "")}</span>
+        <span class="task-no">과제 ${i+1}</span>
+        <span class="task-name">${escHtml(t["과제명"]||"")}</span>
+        <span class="task-id-badge">${escHtml(t["관리번호"]||"")}</span>
       </div>
       <div class="task-body">
         <div class="field-label">■ 개발내용</div>
-        <div class="field-value">${escHtml(t["개발내용"] || "")}</div>
+        <div class="field-value">${escHtml(t["개발내용"]||"")}</div>
         <div class="field-label" style="margin-top:12px">■ 수행가능 근거</div>
-        <div class="basis-box">${escHtml(t["수행가능_근거"] || "")}</div>
+        <div class="basis-box">${escHtml(t["수행가능_근거"]||"")}</div>
       </div>`;
     container.appendChild(card);
   });
@@ -445,57 +347,13 @@ function renderResult(data) {
 function toggleCap() {
   const body = document.getElementById("cap-body");
   const btn = document.querySelector(".cap-toggle");
-  const visible = body.style.display === "block";
-  body.style.display = visible ? "none" : "block";
-  btn.textContent = visible ? "▶ TTA 역량 분석 요약 보기" : "▼ TTA 역량 분석 요약 숨기기";
+  const v = body.style.display === "block";
+  body.style.display = v ? "none" : "block";
+  btn.textContent = v ? "▶ TTA 역량 분석 요약 보기" : "▼ TTA 역량 분석 요약 숨기기";
 }
 
-// ── 저장 ────────────────────────────────────────────────────────────────────
-function saveResult() {
-  if (!resultData) return;
-  const tasks = resultData.tasks || [];
-  let txt = "=".repeat(70) + "\n  TTA(한국정보통신기술협회) 수행 가능 과제 분석 결과\n" + "=".repeat(70) + "\n\n";
-  txt += `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.\n\n`;
-  tasks.forEach((t, i) => {
-    txt += "─".repeat(70) + "\n";
-    txt += `[과제 ${i + 1}]\n■ 관리번호  : ${t["관리번호"] || ""}\n■ 과제명    : ${t["과제명"] || ""}\n\n`;
-    txt += `■ 개발내용\n  ${t["개발내용"] || ""}\n\n■ 수행가능 근거\n  ${t["수행가능_근거"] || ""}\n\n`;
-  });
-  txt += "=".repeat(70) + "\n  [참고] TTA 역량 분석 요약\n" + "=".repeat(70) + "\n";
-  txt += resultData.capability_summary || "";
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([txt], { type: "text/plain;charset=utf-8" }));
-  a.download = "TTA_분석결과.txt";
-  a.click();
-}
-
-// ── 유틸 ────────────────────────────────────────────────────────────────────
-function showError(msg) {
-  const box = document.getElementById("error-box");
-  box.textContent = "⚠ " + msg;
-  box.style.display = "block";
-  document.getElementById("status-msg").textContent = "";
-}
-
-function clearResult() {
-  resultData = null;
-  document.getElementById("result-section").style.display = "none";
-  document.getElementById("error-box").style.display = "none";
-  document.getElementById("task-cards").innerHTML = "";
-  document.getElementById("cap-body").style.display = "none";
-  document.getElementById("status-msg").textContent = "";
-}
-
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-// ── 분석 이력 ────────────────────────────────────────────────────────────────
+// ── 이력 ────────────────────────────────────────────────────────────────────
 let historyOpen = false;
-
 async function toggleHistory() {
   const panel = document.getElementById("history-panel");
   const btn = document.querySelector(".history-toggle");
@@ -504,37 +362,25 @@ async function toggleHistory() {
   btn.textContent = historyOpen ? "🕘 분석 이력 닫기" : "🕘 분석 이력 보기";
   if (historyOpen) await loadHistory();
 }
-
 async function loadHistory() {
   const list = document.getElementById("history-list");
   try {
     const res = await fetch("/history");
-    if (!res.ok) {
-      list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">
-        Supabase 미연결 상태입니다. 환경변수를 설정해 주세요.</div>`;
-      return;
-    }
+    if (!res.ok) { list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">Supabase 미연결 상태입니다.</div>`; return; }
     const data = await res.json();
-    if (!data.length) {
-      list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#888">저장된 이력이 없습니다.</div>`;
-      return;
-    }
+    if (!data.length) { list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#888">저장된 이력이 없습니다.</div>`; return; }
     list.innerHTML = data.map(r => {
       const date = new Date(r.created_at).toLocaleString("ko-KR");
-      const taskCount = (r.tasks || []).length;
-      const rfpFiles = (r.rfp_files || []).join(", ") || "-";
-      return `
-        <div class="history-item" onclick="loadHistoryDetail(${r.id})">
-          <div class="history-date">📅 ${date}</div>
-          <div class="history-files">📋 ${escHtml(rfpFiles)}</div>
-          <div class="history-count">→ 수행가능 과제 ${taskCount}건</div>
-        </div>`;
+      const taskCount = (r.tasks||[]).length;
+      const rfpFiles = (r.rfp_files||[]).join(", ")||"-";
+      return `<div class="history-item" onclick="loadHistoryDetail(${r.id})">
+        <div class="history-date">📅 ${date}</div>
+        <div class="history-files">📋 ${escHtml(rfpFiles)}</div>
+        <div class="history-count">→ 수행가능 과제 ${taskCount}건</div>
+      </div>`;
     }).join("");
-  } catch (e) {
-    list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">이력 불러오기 실패: ${e.message}</div>`;
-  }
+  } catch(e) { list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">이력 불러오기 실패: ${e.message}</div>`; }
 }
-
 async function loadHistoryDetail(id) {
   try {
     const res = await fetch(`/history/${id}`);
@@ -542,11 +388,49 @@ async function loadHistoryDetail(id) {
     if (data.error) { alert(data.error); return; }
     resultData = { tasks: data.tasks, capability_summary: data.capability_summary, raw: data.raw_output };
     renderResult(resultData);
-    document.getElementById("status-msg").textContent = `✔ 이력 #${id} 불러옴`;
+    setStatus(`✔ 이력 #${id} 불러옴`);
     window.scrollTo({ top: document.getElementById("result-section").offsetTop - 20, behavior: "smooth" });
-  } catch (e) {
-    alert("상세 불러오기 실패: " + e.message);
-  }
+  } catch(e) { alert("상세 불러오기 실패: " + e.message); }
+}
+
+// ── 저장 ────────────────────────────────────────────────────────────────────
+function saveResult() {
+  if (!resultData) return;
+  const tasks = resultData.tasks||[];
+  let txt = "=".repeat(70)+"\n  TTA(한국정보통신기술협회) 수행 가능 과제 분석 결과\n"+"=".repeat(70)+"\n\n";
+  txt += `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.\n\n`;
+  tasks.forEach((t,i) => {
+    txt += "─".repeat(70)+"\n[과제 "+(i+1)+"]\n";
+    txt += `■ 관리번호  : ${t["관리번호"]||""}\n■ 과제명    : ${t["과제명"]||""}\n\n`;
+    txt += `■ 개발내용\n  ${t["개발내용"]||""}\n\n■ 수행가능 근거\n  ${t["수행가능_근거"]||""}\n\n`;
+  });
+  txt += "=".repeat(70)+"\n  [참고] TTA 역량 분석 요약\n"+"=".repeat(70)+"\n"+(resultData.capability_summary||"");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));
+  a.download = "TTA_분석결과.txt"; a.click();
+}
+
+// ── 유틸 ────────────────────────────────────────────────────────────────────
+function setOverlay(show, msg="") {
+  document.getElementById("overlay").classList.toggle("show", show);
+  if (msg) document.getElementById("overlay-msg").textContent = msg;
+}
+function setStatus(msg) { document.getElementById("status-msg").textContent = msg; }
+function showError(msg) {
+  const box = document.getElementById("error-box");
+  box.textContent = "⚠ "+msg; box.style.display = "block";
+  setStatus("");
+}
+function clearResult() {
+  resultData = null;
+  document.getElementById("result-section").style.display = "none";
+  document.getElementById("error-box").style.display = "none";
+  document.getElementById("task-cards").innerHTML = "";
+  document.getElementById("cap-body").style.display = "none";
+  setStatus("");
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 </script>
 </body>
