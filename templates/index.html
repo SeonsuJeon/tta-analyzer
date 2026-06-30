@@ -14,7 +14,6 @@
     min-height: 100vh;
   }
 
-  /* ── 헤더 ── */
   header {
     background: #1a3a5c;
     color: #fff;
@@ -22,7 +21,6 @@
     padding: 18px 24px;
     font-size: 20px;
     font-weight: bold;
-    letter-spacing: .5px;
   }
 
   /* ── API 키 바 ── */
@@ -35,29 +33,15 @@
     flex-wrap: wrap;
   }
   .api-bar label { color: #aaa; font-size: 13px; font-weight: bold; white-space: nowrap; }
-  .api-bar input[type="password"],
-  .api-bar input[type="text"] {
-    flex: 1;
-    min-width: 260px;
-    max-width: 520px;
-    background: #3d3d3d;
-    border: none;
-    border-radius: 4px;
-    color: #e0e0e0;
-    font-family: Consolas, monospace;
-    font-size: 13px;
-    padding: 7px 10px;
-    outline: none;
+  .api-bar input {
+    flex: 1; min-width: 260px; max-width: 520px;
+    background: #3d3d3d; border: none; border-radius: 4px;
+    color: #e0e0e0; font-family: Consolas, monospace; font-size: 13px;
+    padding: 7px 10px; outline: none;
   }
   .api-bar button {
-    background: #555;
-    border: none;
-    border-radius: 4px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 7px 14px;
-    white-space: nowrap;
+    background: #555; border: none; border-radius: 4px;
+    color: #fff; cursor: pointer; font-size: 12px; padding: 7px 14px;
   }
   .api-bar button:hover { background: #777; }
   #key-status { font-size: 12px; }
@@ -65,40 +49,27 @@
   #key-status.warn { color: #f39c12; }
   #key-status.none { color: #e74c3c; }
 
-  /* ── 메인 레이아웃 ── */
+  /* ── 메인 ── */
   main { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
 
-  /* ── 섹션 공통 ── */
   .section {
-    background: #fff;
-    border-radius: 8px;
+    background: #fff; border-radius: 8px;
     box-shadow: 0 1px 4px rgba(0,0,0,.1);
-    margin-bottom: 16px;
-    overflow: hidden;
+    margin-bottom: 16px; overflow: hidden;
   }
   .section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    font-weight: bold;
-    font-size: 14px;
-    color: #fff;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; font-weight: bold; font-size: 14px; color: #fff;
   }
-  .section-header.green  { background: #2c6e49; }
-  .section-header.blue   { background: #1d4e89; }
+  .section-header.green { background: #2c6e49; }
+  .section-header.blue  { background: #1d4e89; }
   .section-body { padding: 14px 16px; }
 
-  /* ── 파일 드롭존 ── */
+  /* ── 드롭존 ── */
   .drop-zone {
-    border: 2px dashed #ccc;
-    border-radius: 6px;
-    padding: 20px;
-    text-align: center;
-    color: #888;
-    font-size: 13px;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
+    border: 2px dashed #ccc; border-radius: 6px; padding: 20px;
+    text-align: center; color: #888; font-size: 13px;
+    cursor: pointer; transition: border-color .2s, background .2s;
     position: relative;
   }
   .drop-zone:hover, .drop-zone.over { border-color: #4a90d9; background: #f0f7ff; }
@@ -110,201 +81,112 @@
   /* ── 파일 목록 ── */
   .file-list { margin-top: 10px; }
   .file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8f8f8;
-    border-radius: 4px;
-    font-size: 12px;
-    margin-bottom: 4px;
-    padding: 6px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f8f8f8; border-radius: 4px; font-size: 12px;
+    margin-bottom: 4px; padding: 6px 10px;
   }
   .file-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .file-item button {
-    background: none;
-    border: none;
-    color: #c0392b;
-    cursor: pointer;
-    font-size: 14px;
-    flex-shrink: 0;
-    margin-left: 8px;
+    background: none; border: none; color: #c0392b;
+    cursor: pointer; font-size: 14px; flex-shrink: 0; margin-left: 8px;
   }
 
-  /* ── 분석 버튼 ── */
-  .ctrl-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 6px 0 16px;
-    flex-wrap: wrap;
-  }
+  /* ── 버튼 ── */
+  .ctrl-row { display: flex; align-items: center; gap: 12px; margin: 6px 0 16px; flex-wrap: wrap; }
   .btn-analyze {
-    background: #c0392b;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: bold;
-    padding: 11px 32px;
-    transition: background .2s;
+    background: #c0392b; border: none; border-radius: 6px;
+    color: #fff; cursor: pointer; font-size: 15px; font-weight: bold;
+    padding: 11px 32px; transition: background .2s;
   }
   .btn-analyze:hover:not(:disabled) { background: #96281b; }
   .btn-analyze:disabled { background: #aaa; cursor: not-allowed; }
   .btn-clear {
-    background: #7f8c8d;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 13px;
-    padding: 11px 20px;
+    background: #7f8c8d; border: none; border-radius: 6px;
+    color: #fff; cursor: pointer; font-size: 13px; padding: 11px 20px;
   }
   .btn-clear:hover { background: #636e72; }
   #status-msg { font-size: 13px; color: #555; }
 
-  /* ── 진행 로그 ── */
-  #log-box {
-    background: #1e1e1e;
-    border-radius: 6px;
-    color: #b0ffb0;
-    display: none;
-    font-family: Consolas, monospace;
-    font-size: 12px;
-    height: 110px;
-    margin-bottom: 14px;
-    overflow-y: auto;
-    padding: 10px 14px;
+  /* ── 오류 ── */
+  .error-box {
+    background: #fdecea; border-left: 4px solid #c0392b; border-radius: 4px;
+    color: #c0392b; display: none; font-size: 13px; margin-bottom: 14px; padding: 12px 16px;
   }
-  #log-box p { line-height: 1.6; }
 
   /* ── 결과 ── */
   #result-section { display: none; }
   .result-summary {
-    background: #eaf4ee;
-    border-left: 4px solid #2c6e49;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-bottom: 16px;
-    padding: 10px 14px;
+    background: #eaf4ee; border-left: 4px solid #2c6e49;
+    border-radius: 4px; font-size: 13px; margin-bottom: 16px; padding: 10px 14px;
   }
 
-  /* 과제 카드 */
   .task-card {
-    background: #fff;
-    border: 1px solid #dde;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.07);
-    margin-bottom: 14px;
-    overflow: hidden;
+    background: #fff; border: 1px solid #dde; border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 14px; overflow: hidden;
   }
   .task-card-header {
-    background: #1a3a5c;
-    color: #fff;
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 10px 16px;
+    background: #1a3a5c; color: #fff;
+    display: flex; align-items: baseline; gap: 12px; padding: 10px 16px;
   }
   .task-no { font-size: 12px; opacity: .75; }
   .task-name { font-weight: bold; font-size: 14px; }
   .task-id-badge {
-    background: rgba(255,255,255,.2);
-    border-radius: 4px;
-    font-size: 11px;
-    padding: 2px 7px;
-    margin-left: auto;
-    white-space: nowrap;
+    background: rgba(255,255,255,.2); border-radius: 4px;
+    font-size: 11px; padding: 2px 7px; margin-left: auto; white-space: nowrap;
   }
   .task-body { padding: 14px 16px; }
   .field-label {
-    color: #1a3a5c;
-    font-size: 12px;
-    font-weight: bold;
-    margin: 10px 0 4px;
-    text-transform: uppercase;
-    letter-spacing: .5px;
+    color: #1a3a5c; font-size: 12px; font-weight: bold;
+    margin: 10px 0 4px; letter-spacing: .5px;
   }
   .field-label:first-child { margin-top: 0; }
-  .field-value {
-    color: #333;
-    font-size: 13px;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
+  .field-value { color: #333; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
   .basis-box {
-    background: #fffbe6;
-    border-left: 3px solid #f39c12;
-    border-radius: 3px;
-    font-size: 12.5px;
-    line-height: 1.65;
-    margin-top: 4px;
-    padding: 8px 12px;
-    white-space: pre-wrap;
+    background: #fffbe6; border-left: 3px solid #f39c12; border-radius: 3px;
+    font-size: 12.5px; line-height: 1.65; margin-top: 4px;
+    padding: 8px 12px; white-space: pre-wrap;
   }
 
-  /* 역량 요약 토글 */
   .cap-toggle {
-    background: none;
-    border: 1px solid #1a3a5c;
-    border-radius: 4px;
-    color: #1a3a5c;
-    cursor: pointer;
-    font-size: 12px;
-    margin-bottom: 10px;
-    padding: 5px 12px;
+    background: none; border: 1px solid #1a3a5c; border-radius: 4px;
+    color: #1a3a5c; cursor: pointer; font-size: 12px; margin-bottom: 10px; padding: 5px 12px;
   }
   #cap-body {
-    background: #f4f8ff;
-    border-radius: 6px;
-    display: none;
-    font-size: 13px;
-    line-height: 1.75;
-    margin-bottom: 14px;
-    padding: 14px 16px;
-    white-space: pre-wrap;
+    background: #f4f8ff; border-radius: 6px; display: none; font-size: 13px;
+    line-height: 1.75; margin-bottom: 14px; padding: 14px 16px; white-space: pre-wrap;
   }
 
-  /* 저장 버튼 */
   .btn-save {
-    background: #34495e;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 13px;
-    padding: 9px 20px;
-    margin-top: 4px;
+    background: #34495e; border: none; border-radius: 6px;
+    color: #fff; cursor: pointer; font-size: 13px; padding: 9px 20px; margin-top: 4px;
   }
   .btn-save:hover { background: #2c3e50; }
 
-  /* 오류 */
-  .error-box {
-    background: #fdecea;
-    border-left: 4px solid #c0392b;
-    border-radius: 4px;
-    color: #c0392b;
-    display: none;
-    font-size: 13px;
-    margin-bottom: 14px;
-    padding: 12px 16px;
+  /* ── 스피너 오버레이 ── */
+  #overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 999;
+    flex-direction: column; align-items: center; justify-content: center; gap: 16px;
   }
-
-  /* 스피너 */
-  .spinner {
-    display: inline-block;
-    width: 18px; height: 18px;
-    border: 3px solid #ccc;
-    border-top-color: #1a3a5c;
+  #overlay.show { display: flex; }
+  .spinner-lg {
+    width: 56px; height: 56px;
+    border: 6px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
     border-radius: 50%;
-    animation: spin .7s linear infinite;
-    vertical-align: middle;
+    animation: spin .8s linear infinite;
   }
+  #overlay p { color: #fff; font-size: 15px; font-weight: bold; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<!-- 분석 중 오버레이 -->
+<div id="overlay">
+  <div class="spinner-lg"></div>
+  <p>GPT-4o 분석 중입니다... 잠시만 기다려 주세요.</p>
+</div>
 
 <header>TTA 사업계획서 분석 도구</header>
 
@@ -312,7 +194,7 @@
 <div class="api-bar">
   <label for="api-key-input">OpenAI API Key</label>
   <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off">
-  <button onclick="toggleKey()">표시</button>
+  <button onclick="toggleKey(event)">표시</button>
   <span id="key-status" class="none">키 미입력</span>
 </div>
 
@@ -325,8 +207,7 @@
       <div class="drop-zone" id="dz-existing"
            ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-existing')"
            ondrop="onDrop(event,'existing')">
-        <input type="file" accept=".pdf" multiple
-               onchange="onFileChange(event,'existing')" id="fi-existing">
+        <input type="file" accept=".pdf" multiple onchange="onFileChange(event,'existing')" id="fi-existing">
         <div class="drop-icon">📄</div>
         <div>PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능</div>
@@ -342,8 +223,7 @@
       <div class="drop-zone" id="dz-rfp"
            ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'dz-rfp')"
            ondrop="onDrop(event,'rfp')">
-        <input type="file" accept=".pdf" multiple
-               onchange="onFileChange(event,'rfp')" id="fi-rfp">
+        <input type="file" accept=".pdf" multiple onchange="onFileChange(event,'rfp')" id="fi-rfp">
         <div class="drop-icon">📋</div>
         <div>PDF 파일을 드래그하거나 클릭하여 선택</div>
         <div style="font-size:11px;margin-top:4px;color:#aaa">여러 파일 동시 선택 가능</div>
@@ -359,21 +239,14 @@
     <span id="status-msg"></span>
   </div>
 
-  <!-- 오류 -->
   <div class="error-box" id="error-box"></div>
-
-  <!-- 로그 -->
-  <div id="log-box"></div>
 
   <!-- 결과 -->
   <div id="result-section">
     <div class="result-summary" id="result-summary"></div>
-
     <button class="cap-toggle" onclick="toggleCap()">▶ TTA 역량 분석 요약 보기</button>
     <div id="cap-body"></div>
-
     <div id="task-cards"></div>
-
     <button class="btn-save" onclick="saveResult()">결과 저장 (.txt)</button>
   </div>
 
@@ -398,10 +271,7 @@ function renderList(type) {
 function addFiles(type, fileList) {
   const existing = new Set([...fileStore[type].files].map(f => f.name));
   for (const f of fileList) {
-    if (!existing.has(f.name)) {
-      fileStore[type].items.add(f);
-      existing.add(f.name);
-    }
+    if (!existing.has(f.name)) { fileStore[type].items.add(f); existing.add(f.name); }
   }
   renderList(type);
 }
@@ -409,17 +279,12 @@ function addFiles(type, fileList) {
 function removeFile(type, idx) {
   const dt = new DataTransfer();
   const files = fileStore[type].files;
-  for (let i = 0; i < files.length; i++) {
-    if (i !== idx) dt.items.add(files[i]);
-  }
+  for (let i = 0; i < files.length; i++) { if (i !== idx) dt.items.add(files[i]); }
   fileStore[type] = dt;
   renderList(type);
 }
 
-function onFileChange(e, type) {
-  addFiles(type, e.target.files);
-  e.target.value = "";
-}
+function onFileChange(e, type) { addFiles(type, e.target.files); e.target.value = ""; }
 function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add("over"); }
 function onDragLeave(e, id) { document.getElementById(id).classList.remove("over"); }
 function onDrop(e, type) {
@@ -432,10 +297,10 @@ function onDrop(e, type) {
 const keyInput = document.getElementById("api-key-input");
 const keyStatus = document.getElementById("key-status");
 
-function toggleKey() {
+function toggleKey(e) {
   const isHidden = keyInput.type === "password";
   keyInput.type = isHidden ? "text" : "password";
-  event.target.textContent = isHidden ? "숨기기" : "표시";
+  e.target.textContent = isHidden ? "숨기기" : "표시";
 }
 
 keyInput.addEventListener("input", () => {
@@ -450,76 +315,44 @@ keyInput.addEventListener("input", () => {
 });
 
 // ── 분석 ───────────────────────────────────────────────────────────────────
-let pollTimer = null;
 let resultData = null;
 
 async function startAnalysis() {
   const apiKey = keyInput.value.trim();
-  if (!apiKey)         return alert("OpenAI API Key를 입력하세요.");
-  if (!fileStore.existing.files.length) return alert("기존 사업계획서 PDF를 업로드하세요.");
-  if (!fileStore.rfp.files.length)      return alert("품목개요서(상세RFP) PDF를 업로드하세요.");
+  if (!apiKey)                           return alert("OpenAI API Key를 입력하세요.");
+  if (!fileStore.existing.files.length)  return alert("기존 사업계획서 PDF를 업로드하세요.");
+  if (!fileStore.rfp.files.length)       return alert("품목개요서(상세RFP) PDF를 업로드하세요.");
 
   clearResult();
-  setStatus("서버로 파일 전송 중...", true);
+  document.getElementById("btn-analyze").disabled = true;
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("status-msg").textContent = "분석 중...";
 
   const fd = new FormData();
   fd.append("api_key", apiKey);
   for (const f of fileStore.existing.files) fd.append("existing_files", f);
   for (const f of fileStore.rfp.files)      fd.append("rfp_files", f);
 
-  const logBox = document.getElementById("log-box");
-  logBox.style.display = "block";
-  logBox.innerHTML = "";
-
   try {
     const res = await fetch("/analyze", { method: "POST", body: fd });
     const data = await res.json();
-    if (!res.ok) { showError(data.error || "서버 오류"); return; }
 
-    pollStatus(data.job_id);
+    if (!res.ok || data.error) {
+      showError(data.error || "서버 오류가 발생했습니다.");
+    } else {
+      resultData = data;
+      renderResult(data);
+      document.getElementById("status-msg").textContent = "✔ 분석 완료!";
+    }
   } catch (e) {
     showError("요청 실패: " + e.message);
+  } finally {
+    document.getElementById("overlay").classList.remove("show");
+    document.getElementById("btn-analyze").disabled = false;
   }
 }
 
-function pollStatus(jobId) {
-  pollTimer = setInterval(async () => {
-    try {
-      const res = await fetch(`/status/${jobId}`);
-      const data = await res.json();
-
-      // 로그 갱신
-      const logBox = document.getElementById("log-box");
-      logBox.innerHTML = data.log.map(l => `<p>> ${l}</p>`).join("");
-      logBox.scrollTop = logBox.scrollHeight;
-
-      if (data.status === "done") {
-        clearInterval(pollTimer);
-        setStatus("분석 완료!", false);
-        await fetchResult(jobId);
-      } else if (data.status === "error") {
-        clearInterval(pollTimer);
-        showError(data.error || "알 수 없는 오류");
-        setStatus("오류 발생", false);
-      } else {
-        const lastLog = data.log.at(-1) || "분석 중...";
-        setStatus(lastLog, true);
-      }
-    } catch (e) {
-      clearInterval(pollTimer);
-      showError("폴링 오류: " + e.message);
-    }
-  }, 1500);
-}
-
-async function fetchResult(jobId) {
-  const res = await fetch(`/result/${jobId}`);
-  const data = await res.json();
-  resultData = data;
-  renderResult(data);
-}
-
-// ── 결과 렌더링 ────────────────────────────────────────────────────────────
+// ── 결과 렌더링 ─────────────────────────────────────────────────────────────
 function renderResult(data) {
   const section = document.getElementById("result-section");
   section.style.display = "block";
@@ -527,7 +360,6 @@ function renderResult(data) {
   const tasks = data.tasks || [];
   document.getElementById("result-summary").textContent =
     `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.`;
-
   document.getElementById("cap-body").textContent = data.capability_summary || "";
 
   const container = document.getElementById("task-cards");
@@ -560,13 +392,9 @@ function renderResult(data) {
 function toggleCap() {
   const body = document.getElementById("cap-body");
   const btn = document.querySelector(".cap-toggle");
-  if (body.style.display === "none" || !body.style.display) {
-    body.style.display = "block";
-    btn.textContent = "▼ TTA 역량 분석 요약 숨기기";
-  } else {
-    body.style.display = "none";
-    btn.textContent = "▶ TTA 역량 분석 요약 보기";
-  }
+  const visible = body.style.display === "block";
+  body.style.display = visible ? "none" : "block";
+  btn.textContent = visible ? "▶ TTA 역량 분석 요약 보기" : "▼ TTA 역량 분석 요약 숨기기";
 }
 
 // ── 저장 ────────────────────────────────────────────────────────────────────
@@ -577,44 +405,30 @@ function saveResult() {
   txt += `총 ${tasks.length}개 과제가 TTA 수행 가능으로 분석되었습니다.\n\n`;
   tasks.forEach((t, i) => {
     txt += "─".repeat(70) + "\n";
-    txt += `[과제 ${i + 1}]\n`;
-    txt += `■ 관리번호  : ${t["관리번호"] || ""}\n`;
-    txt += `■ 과제명    : ${t["과제명"] || ""}\n\n`;
-    txt += `■ 개발내용\n  ${t["개발내용"] || ""}\n\n`;
-    txt += `■ 수행가능 근거\n  ${t["수행가능_근거"] || ""}\n\n`;
+    txt += `[과제 ${i + 1}]\n■ 관리번호  : ${t["관리번호"] || ""}\n■ 과제명    : ${t["과제명"] || ""}\n\n`;
+    txt += `■ 개발내용\n  ${t["개발내용"] || ""}\n\n■ 수행가능 근거\n  ${t["수행가능_근거"] || ""}\n\n`;
   });
   txt += "=".repeat(70) + "\n  [참고] TTA 역량 분석 요약\n" + "=".repeat(70) + "\n";
   txt += resultData.capability_summary || "";
 
-  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
+  a.href = URL.createObjectURL(new Blob([txt], { type: "text/plain;charset=utf-8" }));
   a.download = "TTA_분석결과.txt";
   a.click();
 }
 
 // ── 유틸 ────────────────────────────────────────────────────────────────────
-function setStatus(msg, spinning) {
-  const el = document.getElementById("status-msg");
-  const btn = document.getElementById("btn-analyze");
-  el.innerHTML = spinning ? `<span class="spinner"></span> ${msg}` : msg;
-  btn.disabled = spinning;
-}
-
 function showError(msg) {
   const box = document.getElementById("error-box");
   box.textContent = "⚠ " + msg;
   box.style.display = "block";
-  setStatus("", false);
+  document.getElementById("status-msg").textContent = "";
 }
 
 function clearResult() {
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   resultData = null;
   document.getElementById("result-section").style.display = "none";
   document.getElementById("error-box").style.display = "none";
-  document.getElementById("log-box").style.display = "none";
-  document.getElementById("log-box").innerHTML = "";
   document.getElementById("task-cards").innerHTML = "";
   document.getElementById("cap-body").style.display = "none";
   document.getElementById("status-msg").textContent = "";
@@ -622,8 +436,8 @@ function clearResult() {
 
 function escHtml(s) {
   return String(s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 </script>
 </body>
