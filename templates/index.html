@@ -335,7 +335,24 @@ async function startAnalysis() {
 
   try {
     const res = await fetch("/analyze", { method: "POST", body: fd });
-    const data = await res.json();
+
+    // 응답이 JSON인지 먼저 확인
+    const contentType = res.headers.get("content-type") || "";
+    let data;
+    if (contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      // JSON이 아닌 경우 (Vercel 413·504 등 HTML/텍스트 오류)
+      const text = await res.text();
+      if (res.status === 413) {
+        showError("파일 크기가 너무 큽니다 (Vercel 무료 플랜 제한 4.5MB). PDF 파일 수를 줄이거나 파일 크기를 줄여 주세요.");
+      } else if (res.status === 504 || res.status === 502) {
+        showError("분석 시간이 초과되었습니다 (Vercel 무료 플랜 제한 10초). PDF 파일 수를 줄이거나 Render 배포로 전환해 주세요.");
+      } else {
+        showError(`서버 오류 (HTTP ${res.status}): ${text.slice(0, 200)}`);
+      }
+      return;
+    }
 
     if (!res.ok || data.error) {
       showError(data.error || "서버 오류가 발생했습니다.");
@@ -345,7 +362,12 @@ async function startAnalysis() {
       document.getElementById("status-msg").textContent = "✔ 분석 완료!";
     }
   } catch (e) {
-    showError("요청 실패: " + e.message);
+    // 네트워크 오류 또는 JSON 파싱 실패
+    if (e instanceof SyntaxError) {
+      showError("서버 응답을 처리할 수 없습니다. Vercel 타임아웃(10초) 또는 파일 크기 초과(4.5MB)가 원인일 수 있습니다.");
+    } else {
+      showError("네트워크 오류: " + e.message);
+    }
   } finally {
     document.getElementById("overlay").classList.remove("show");
     document.getElementById("btn-analyze").disabled = false;
