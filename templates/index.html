@@ -162,6 +162,30 @@
   }
   .btn-save:hover { background: #2c3e50; }
 
+  /* ── 이력 패널 ── */
+  .history-toggle {
+    background: none; border: 1px solid #7f8c8d; border-radius: 4px;
+    color: #555; cursor: pointer; font-size: 12px; padding: 5px 12px; margin-bottom: 10px;
+  }
+  #history-panel {
+    background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    display: none; margin-bottom: 16px; overflow: hidden;
+  }
+  .history-header {
+    background: #34495e; color: #fff; font-size: 13px;
+    font-weight: bold; padding: 10px 16px;
+  }
+  .history-item {
+    border-bottom: 1px solid #eee; cursor: pointer;
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 10px 16px; transition: background .15s;
+  }
+  .history-item:hover { background: #f5f7fa; }
+  .history-item:last-child { border-bottom: none; }
+  .history-date { color: #888; font-size: 11px; }
+  .history-files { color: #333; font-size: 12px; }
+  .history-count { color: #1d4e89; font-size: 11px; font-weight: bold; }
+
   /* ── 스피너 오버레이 ── */
   #overlay {
     display: none; position: fixed; inset: 0;
@@ -199,6 +223,13 @@
 </div>
 
 <main>
+
+  <!-- 이력 패널 -->
+  <button class="history-toggle" onclick="toggleHistory()">🕘 분석 이력 보기</button>
+  <div id="history-panel">
+    <div class="history-header">최근 분석 이력 (Supabase)</div>
+    <div id="history-list"><div style="padding:12px 16px;font-size:13px;color:#888">불러오는 중...</div></div>
+  </div>
 
   <!-- 기존 사업계획서 -->
   <div class="section">
@@ -460,6 +491,62 @@ function escHtml(s) {
   return String(s)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;")
     .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ── 분석 이력 ────────────────────────────────────────────────────────────────
+let historyOpen = false;
+
+async function toggleHistory() {
+  const panel = document.getElementById("history-panel");
+  const btn = document.querySelector(".history-toggle");
+  historyOpen = !historyOpen;
+  panel.style.display = historyOpen ? "block" : "none";
+  btn.textContent = historyOpen ? "🕘 분석 이력 닫기" : "🕘 분석 이력 보기";
+  if (historyOpen) await loadHistory();
+}
+
+async function loadHistory() {
+  const list = document.getElementById("history-list");
+  try {
+    const res = await fetch("/history");
+    if (!res.ok) {
+      list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">
+        Supabase 미연결 상태입니다. 환경변수를 설정해 주세요.</div>`;
+      return;
+    }
+    const data = await res.json();
+    if (!data.length) {
+      list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#888">저장된 이력이 없습니다.</div>`;
+      return;
+    }
+    list.innerHTML = data.map(r => {
+      const date = new Date(r.created_at).toLocaleString("ko-KR");
+      const taskCount = (r.tasks || []).length;
+      const rfpFiles = (r.rfp_files || []).join(", ") || "-";
+      return `
+        <div class="history-item" onclick="loadHistoryDetail(${r.id})">
+          <div class="history-date">📅 ${date}</div>
+          <div class="history-files">📋 ${escHtml(rfpFiles)}</div>
+          <div class="history-count">→ 수행가능 과제 ${taskCount}건</div>
+        </div>`;
+    }).join("");
+  } catch (e) {
+    list.innerHTML = `<div style="padding:12px 16px;font-size:13px;color:#e74c3c">이력 불러오기 실패: ${e.message}</div>`;
+  }
+}
+
+async function loadHistoryDetail(id) {
+  try {
+    const res = await fetch(`/history/${id}`);
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    resultData = { tasks: data.tasks, capability_summary: data.capability_summary, raw: data.raw_output };
+    renderResult(resultData);
+    document.getElementById("status-msg").textContent = `✔ 이력 #${id} 불러옴`;
+    window.scrollTo({ top: document.getElementById("result-section").offsetTop - 20, behavior: "smooth" });
+  } catch (e) {
+    alert("상세 불러오기 실패: " + e.message);
+  }
 }
 </script>
 </body>

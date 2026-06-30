@@ -1,5 +1,5 @@
 """
-TTA 사업계획서 분석 도구 - Flask 웹앱 (Vercel 서버리스 호환)
+TTA 사업계획서 분석 도구 - Flask 웹앱 (Vercel 서버리스 + Supabase 연동)
 """
 
 import io
@@ -10,6 +10,7 @@ import re
 from flask import Flask, render_template, request, jsonify
 import pdfplumber
 from openai import OpenAI
+from supabase import create_client, Client
 
 # ─── 설정 ────────────────────────────────────────────────────────────────────
 MODEL = "gpt-4o"
@@ -18,6 +19,15 @@ PDF_CHAR_LIMIT = 60000
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100 MB
+
+# ─── Supabase 클라이언트 ──────────────────────────────────────────────────────
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+
+def get_supabase() -> Client | None:
+    if SUPABASE_URL and SUPABASE_KEY:
+        return create_client(SUPABASE_URL, SUPABASE_KEY)
+    return None
 
 
 # ─── PDF 파싱 (메모리 기반) ───────────────────────────────────────────────────
@@ -44,6 +54,25 @@ def chat(client: OpenAI, prompt: str, max_tokens: int = 4000) -> str:
     return resp.choices[0].message.content.strip()
 
 
+# ─── Supabase 저장 ────────────────────────────────────────────────────────────
+def save_to_supabase(existing_names: list, rfp_names: list,
+                     capability_summary: str, tasks: list, raw: str | None):
+    sb = get_supabase()
+    if not sb:
+        return None
+    try:
+        res = sb.table("analysis_results").insert({
+            "existing_files": existing_names,
+            "rfp_files":      rfp_names,
+            "capability_summary": capability_summary,
+            "tasks":          tasks,
+            "raw_output":     raw,
+        }).execute()
+        return res.data[0]["id"] if res.data else None
+    except Exception:
+        return None
+
+
 # ─── 라우트 ───────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
@@ -68,20 +97,22 @@ def analyze():
         client = OpenAI(api_key=api_key)
 
         # ── PDF 텍스트 추출 ──
-        existing_parts = []
+        existing_names, existing_parts = [], []
         for f in existing_files:
             if f.filename:
+                existing_names.append(f.filename)
                 text = extract_text_from_bytes(f.read())
                 existing_parts.append(f"=== 파일: {f.filename} ===\n{text}")
 
-        rfp_parts = []
+        rfp_names, rfp_parts = [], []
         for f in rfp_files:
             if f.filename:
+                rfp_names.append(f.filename)
                 text = extract_text_from_bytes(f.read())
                 rfp_parts.append(f"=== 파일: {f.filename} ===\n{text}")
 
         existing_combined = "\n\n".join(existing_parts)
-        rfp_combined = "\n\n".join(rfp_parts)
+        rfp_combined      = "\n\n".join(rfp_parts)
 
         # ── 1단계: TTA 역량 분석 ──
         step1_prompt = f"""아래는 한국정보통신기술협회(TTA)가 과거에 수행한 사업계획서들입니다.
@@ -136,12 +167,55 @@ JSON 배열만 출력하세요. 설명 텍스트 없이.
                 except Exception:
                     pass
 
+        raw_output = raw_json if tasks is None else None
+
+        # ── Supabase 저장 ──
+        saved_id = save_to_supabase(
+            existing_names, rfp_names,
+            capability_summary, tasks or [], raw_output
+        )
+
         return jsonify({
-            "tasks": tasks,
-            "capability_summary": capability_summary,
-            "raw": raw_json if tasks is None else None,
+            "tasks":               tasks,
+            "capability_summary":  capability_summary,
+            "raw":                 raw_output,
+            "saved_id":            saved_id,
         })
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/history")
+def history():
+    """최근 분석 이력 20건 반환"""
+    sb = get_supabase()
+    if not sb:
+        return jsonify({"error": "Supabase가 설정되지 않았습니다."}), 503
+    try:
+        res = (sb.table("analysis_results")
+               .select("id, created_at, existing_files, rfp_files, tasks")
+               .order("created_at", desc=True)
+               .limit(20)
+               .execute())
+        return jsonify(res.data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/history/<int:record_id>")
+def history_detail(record_id: int):
+    """특정 분석 결과 상세 조회"""
+    sb = get_supabase()
+    if not sb:
+        return jsonify({"error": "Supabase가 설정되지 않았습니다."}), 503
+    try:
+        res = (sb.table("analysis_results")
+               .select("*")
+               .eq("id", record_id)
+               .single()
+               .execute())
+        return jsonify(res.data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
